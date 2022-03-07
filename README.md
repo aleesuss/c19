@@ -1,5 +1,5 @@
 # c19
-Project on C19 diagnosis
+Project on C19 diagnosis. This is the testing phase. The code is given only for evaluation of the model.
 # Dataset for Testing 
 Download the test folder from the link: https://drive.google.com/drive/folders/1ghD5Swn27l1PtWFUARqTMQojEPDZnPMv?usp=sharing 
 The test folder should contain images in three folders viz. covid, normal and pneumonia
