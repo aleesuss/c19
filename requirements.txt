@@ -1,0 +1,4 @@
+python==3.7.4
+cuda==10.0
+cudnn==7.3
+tensorflow==2.8.0
