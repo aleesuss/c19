@@ -1,4 +1,4 @@
-# c19
+# C19
 Project on C19 diagnosis. This is the testing phase. The code is given only for evaluation of the model.
 # Dataset for Testing 
 Download the test folder from the link: https://drive.google.com/drive/folders/1ghD5Swn27l1PtWFUARqTMQojEPDZnPMv?usp=sharing 
