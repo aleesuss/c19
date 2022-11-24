@@ -1,0 +1,120 @@
+import os
+import numpy as np
+import pandas as pd 
+import random
+import cv2
+import math
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+import keras.backend as K
+from keras.models import Model, Sequential
+from keras.layers import Input, Dense, Flatten, Dropout, BatchNormalization
+from keras.layers import Conv2D, SeparableConv2D, MaxPool2D, LeakyReLU, Activation
+from tensorflow.keras.optimizers import Adam
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from keras import metrics
+import tensorflow as tf
+from sklearn.metrics import classification_report, confusion_matrix
+
+
+seed = 232
+np.random.seed(seed)
+tf.random.set_seed(seed)
+import sklearn.metrics as metrics
+#change path here
+input_path = '/content/drive/My Drive/data_byclass_jan20/'
+
+img_dims = 224
+epochs = 10
+batch_size = 64
+
+#from ada
+inputs = Input(shape=(img_dims, img_dims, 3))
+
+# First conv block
+x = Conv2D(filters=16, kernel_size=(3, 3), activation='relu', padding='same')(inputs)
+x = Conv2D(filters=16, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = MaxPool2D(pool_size=(2, 2))(x)
+
+# Second conv block
+x = SeparableConv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = SeparableConv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(pool_size=(2, 2))(x)
+
+# Third conv block
+x = SeparableConv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = SeparableConv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(pool_size=(2, 2))(x)
+
+# Fourth conv block
+x = SeparableConv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = SeparableConv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(pool_size=(2, 2))(x)
+x = Dropout(rate=0.2)(x)
+
+# Fifth conv block
+x = SeparableConv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = SeparableConv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(pool_size=(2, 2))(x)
+x = Dropout(rate=0.2)(x)
+
+# Sixth conv block
+x = SeparableConv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = SeparableConv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(pool_size=(2, 2))(x)
+x = Dropout(rate=0.2)(x)
+x = Flatten()(x)
+x = Dense(units=512, activation='relu')(x)
+#x = Dropout(rate=0.3)(x)
+x = Dense(units=128, activation='relu')(x)
+#x = Dropout(rate=0.3)(x)
+x = Dense(units=64, activation='relu')(x)
+#x = Dropout(rate=0.3)(x)
+
+# Output layer
+output = Dense(units=1, activation='sigmoid')(x)
+
+# Creating model and compiling
+optimizer = Adam(learning_rate=0.0001,beta_1=0.9,beta_2=0.999,epsilon=1e-07)
+model = Model(inputs=inputs, outputs=output)
+model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+#model.load_weights(input_path + 'scratch/suba.s/best_weights_xray_binary.hdf5')
+
+# Callbacks
+checkpoint = ModelCheckpoint(filepath='/scratch/suba.s/best_weights_xray_binary.hdf5', save_best_only=True, save_weights_only=True)
+lr_reduce = ReduceLROnPlateau(monitor='val_loss', factor=0.3, patience=2, verbose=2, mode='max')
+early_stop = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=1, mode='min')
+
+eval_datagen = ImageDataGenerator(rescale = 1./255)
+#change path here
+test_generator = eval_datagen.flow_from_directory(
+    '/content/drive/My Drive/data_byclass_jan20/test/',
+    target_size = (img_dims, img_dims),
+    batch_size = 10, 
+    class_mode = 'binary',shuffle=False
+    
+)
+#change path here
+model.load_weights('/content/drive/My Drive/best_weights_xray_binary.hdf5')
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+eval_result = model.evaluate(test_generator)
+print('loss rate at evaluation data :', eval_result[0])
+print('accuracy rate at evaluation data :', eval_result[1])
+
+Y_pred = model.predict(test_generator, verbose=1, workers=1, use_multiprocessing=False)
+Y_pred[Y_pred<=0.5]=0 
+Y_pred[Y_pred>0.5]=1
+
+print('Confusion Matrix')
+print(metrics.confusion_matrix(test_generator.classes, Y_pred))
+print('Classification Report')
+target_names = ['Normal', 'Pneumonia']
+#print(classification_report(test_generator.classes, Y_pred, target_names=target_names))
