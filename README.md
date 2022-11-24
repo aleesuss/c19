@@ -13,7 +13,10 @@ Set the data path and the path for model weights in My_covnet2.py and run the co
 # Classification Report
 ![image](https://user-images.githubusercontent.com/100481317/157406101-1bea9eaa-210d-4496-8dc5-5ee896c75615.png)
 # Testing the CXR model
-Set the data path and the path for model weights in My_covnetCXR.py and run the code. 
+Set the data path and the path for model weights in My_covnetCXR.py and run the code for the following result.
+# Confusion Matrix
+![image](https://user-images.githubusercontent.com/100481317/203767117-abb00ab6-e9f2-4df4-a966-506d6fc1e3ef.png)
+
 
 
 
